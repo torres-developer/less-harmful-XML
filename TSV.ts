@@ -33,7 +33,6 @@ export class TSV implements LessHarmfulXML {
   readonly delimeter: string = "\t";
 
   stringify(data: Type[], tab = "        "): string {
-    //console.log(data);
     const head: Set<Path> = new Set();
     let headString = "";
 
@@ -43,12 +42,15 @@ export class TSV implements LessHarmfulXML {
     for (const i of data) rows.push(loop(i));
 
     for (const i of head.values()) {
-      headString += i.join(".").replace(this.delimeter, tab) + this.delimeter;
+      headString += i.map(j => j
+                          .replaceAll(".", "\0."))
+                          .join(".")
+                          .replaceAll(this.delimeter, tab) + this.delimeter;
 
       for (const j in rows) {
         const toAdd = rows[j].get(i);
         if (!rowsStrings[j]) rowsStrings[j] = "";
-        rowsStrings[j] += (toAdd ?? "").replace(this.delimeter, tab) + this.delimeter;
+        rowsStrings[j] += (toAdd ?? "").replaceAll(this.delimeter, tab) + this.delimeter;
       }
     }
 
@@ -97,17 +99,27 @@ export class TSV implements LessHarmfulXML {
         const prop = head[i], val = objectArr[i];
         if (val) {
           if (prop.includes(".")) {
-            const objs = prop.split(".");
+            const objs = prop.split(/(?<!\u0000)\./);
             const wVal = objs.pop();
 
             let cur = object;
             for (let j = 0; j < objs.length; j++) {
-              if (!(objs[j] in cur)) cur[objs[j]] = {};
+              if (!(objs[j] in cur)) cur[objs[j].replaceAll("\x00.", ".")] = {};
               cur = cur[objs[j]];
             }
 
-            cur[wVal] = val
-          } else object[prop] = val;
+            try {
+              cur[wVal.replaceAll("\x00.", ".")] = JSON.parse(val);
+            } catch {
+              cur[wVal.replaceAll("\x00.", ".")] = val
+            }
+          } else {
+            try {
+              object[prop.replaceAll("\x00.", ".")] = JSON.parse(val);
+            } catch {
+              object[prop.replaceAll("\x00.", ".")] = val;
+            }
+          }
         }
       }
       
