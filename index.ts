@@ -34,7 +34,7 @@ const arr = [
       subtype: "tab-separated-values",
     }
   }},
-  {name: "Peter\tParker", age: 45, sex: "F"},
+  {name: "Peter", age: 45, sex: "F"},
   {name: "Vinnie", age: 33, sex: "M"},
   {name: "Rae", age: 75, sex: "M"},
   {name: "Andrea", age: 18, sex: "M"},
@@ -53,5 +53,5 @@ const arr = [
   {name: "Ludwig", age: 54, sex: "M"},
   {name: "Bonnie", age: 6, sex: "M"},
 ]
-console.log((new TSV).stringify(arr));
-console.log((new TSV).parse((new TSV).stringify(arr)));
+console.log(TSV.stringify(arr));
+console.log(TSV.parse(TSV.stringify(arr)));

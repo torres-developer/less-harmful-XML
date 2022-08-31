@@ -1,9 +1,16 @@
 "use strict";
 
-import { Type, LessHarmfulXML, Path} from "./types.ts";
+import {
+  Type,
+  staticImplements,
+  LessHarmfulXMLI,
+  LessHarmfulXMLIStatic,
+  Path
+} from "./types.ts";
 
-export class TSV implements LessHarmfulXML {
-  readonly file = {
+@staticImplements<LessHarmfulXMLIStatic>()
+export class TSV implements LessHarmfulXMLI {
+  static readonly file = {
     extensions: [ ".tsv", ".tab" ],
     MIME: {
       type: "text",
@@ -11,9 +18,9 @@ export class TSV implements LessHarmfulXML {
     }
   };
   
-  readonly delimeter: string = "\t";
+  static readonly delimeter: string = "\t";
 
-  stringify(data: Type[]): string {
+  public static stringify(data: Type[]): string {
     const head: Set<Path> = new Set();
     let headString = "";
 
@@ -66,7 +73,7 @@ export class TSV implements LessHarmfulXML {
     }
   }
 
-  parse(notXML: string): Type[] {
+  public static parse(notXML: string): Type[] {
     const [ head, ...body ] = notXML.split("\n").map(i => i.split("\t"));
 
     const arr: Type[] = [];
@@ -82,8 +89,8 @@ export class TSV implements LessHarmfulXML {
 
             let cur = object;
             for (let j = 0; j < objs.length; j++) {
-              if (!(objs[j] in cur)) cur[objs[j].replaceAll("\x00.", ".")] = {};
-              cur = cur[objs[j]];
+              if (!(objs[j] in cur)) cur = cur[objs[j].replaceAll("\x00.", ".")] = {};
+              //cur = cur[objs[j]];
             }
 
             try {
