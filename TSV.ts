@@ -1,25 +1,6 @@
 "use strict";
 
-interface MIMEType {
-  type: string;
-  subtype: string;
-}
-
-interface File {
-  extensions: string[];
-  MIME: MIMEType;
-}
-
-type Type = Record<string, unknown>;
-
-interface LessHarmfulXML {
-  readonly file: File;
-  readonly delimeter: string;
-  stringify(data: Type[]): string;
-  parse(notXML: string): Type[];
-}
-
-type Path = PropertyKey[];
+import { Type, LessHarmfulXML, Path} from "./types.ts";
 
 export class TSV implements LessHarmfulXML {
   readonly file = {
@@ -32,7 +13,7 @@ export class TSV implements LessHarmfulXML {
   
   readonly delimeter: string = "\t";
 
-  stringify(data: Type[], tab = "        "): string {
+  stringify(data: Type[]): string {
     const head: Set<Path> = new Set();
     let headString = "";
 
@@ -42,15 +23,12 @@ export class TSV implements LessHarmfulXML {
     for (const i of data) rows.push(loop(i));
 
     for (const i of head.values()) {
-      headString += i.map(j => j
-                          .replaceAll(".", "\0."))
-                          .join(".")
-                          .replaceAll(this.delimeter, tab) + this.delimeter;
+      headString += i.map(j => j.replaceAll(".", "\0.")).join(".") + this.delimeter;
 
       for (const j in rows) {
         const toAdd = rows[j].get(i);
         if (!rowsStrings[j]) rowsStrings[j] = "";
-        rowsStrings[j] += (toAdd ?? "").replaceAll(this.delimeter, tab) + this.delimeter;
+        rowsStrings[j] += (toAdd ?? "") + this.delimeter;
       }
     }
 
@@ -109,15 +87,15 @@ export class TSV implements LessHarmfulXML {
             }
 
             try {
-              cur[wVal.replaceAll("\x00.", ".")] = JSON.parse(val);
+              cur[wVal.replaceAll("\0.", ".")] = JSON.parse(val);
             } catch {
-              cur[wVal.replaceAll("\x00.", ".")] = val
+              cur[wVal.replaceAll("\0.", ".")] = val
             }
           } else {
             try {
-              object[prop.replaceAll("\x00.", ".")] = JSON.parse(val);
+              object[prop.replaceAll("\0.", ".")] = JSON.parse(val);
             } catch {
-              object[prop.replaceAll("\x00.", ".")] = val;
+              object[prop.replaceAll("\0.", ".")] = val;
             }
           }
         }
