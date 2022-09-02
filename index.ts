@@ -53,5 +53,9 @@ const arr = [
   {name: "Ludwig", age: 54, sex: "M"},
   {name: "Bonnie", age: 6, sex: "M"},
 ]
-console.log(TSV.stringify(arr));
-console.log(TSV.parse(TSV.stringify(arr)));
+//console.log(TSV.stringify(arr));
+//console.log(TSV.parse(TSV.stringify(arr)));
+
+import equalObj from "./objectComparison.ts";
+
+console.log( equalObj( TSV.parse(TSV.stringify(arr)), arr) );

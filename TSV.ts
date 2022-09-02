@@ -49,6 +49,8 @@ export class TSV implements LessHarmfulXMLI {
         const keyPath = calcKey(path.concat(key));
         const value = obj[key];
 
+        if ([key, value].some(s => ("" + s).indexOf("\t") >= 0)) throw new Error("");
+
         if (Array.isArray(value)) {
           head.add(keyPath);
           dummy.set(keyPath, JSON.stringify(value));
@@ -82,6 +84,7 @@ export class TSV implements LessHarmfulXMLI {
 
       for (let i = 0; i < head.length; i++) {
         const prop = head[i], val = objectArr[i];
+
         if (val) {
           if (prop.includes(".")) {
             const objs = prop.split(/(?<!\u0000)\./);
@@ -89,8 +92,11 @@ export class TSV implements LessHarmfulXMLI {
 
             let cur = object;
             for (let j = 0; j < objs.length; j++) {
-              if (!(objs[j] in cur)) cur = cur[objs[j].replaceAll("\x00.", ".")] = {};
-              //cur = cur[objs[j]];
+              const key = objs[j]/*.replaceAll("\x00.", ".")*/;
+
+              if (!(key in cur)) cur[key] = {};
+
+              cur = cur[key];
             }
 
             try {
