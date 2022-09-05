@@ -1,7 +1,9 @@
 "use strict";
 
-import { TSV } from "./TSV.ts";
-export { TSV } from "./TSV.ts";
+import { TSV } from "./XML/TSV.ts";
+
+export { TSV } from "./XML/TSV.ts";
+export { CSV } from "./XML/CSV.ts";
 
 const arr = [
   {
@@ -34,7 +36,7 @@ const arr = [
       subtype: "tab-separated-values",
     }
   }},
-  {name: "Peter", age: 45, sex: "F"},
+  {[Symbol("id")]: 78, name: "Peter", age: 45, sex: "F"},
   {name: "Vinnie", age: 33, sex: "M"},
   {name: "Rae", age: 75, sex: "M"},
   {name: "Andrea", age: 18, sex: "M"},
@@ -53,8 +55,8 @@ const arr = [
   {name: "Ludwig", age: 54, sex: "M"},
   {name: "Bonnie", age: 6, sex: "M"},
 ]
-//console.log(TSV.stringify(arr));
-//console.log(TSV.parse(TSV.stringify(arr)));
+console.log(TSV.stringify(arr));
+console.log(TSV.parse(TSV.stringify(arr)));
 
 import equalObj from "./objectComparison.ts";
 

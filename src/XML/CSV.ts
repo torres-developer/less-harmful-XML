@@ -3,22 +3,22 @@
 import {
   Type,
   staticImplements,
-  LessHarmfulXMLI,
   LessHarmfulXMLIStatic,
-  Path
-} from "./types.ts";
+  Path,
+} from "../types.ts";
 
-@staticImplements<LessHarmfulXMLIStatic>()
-export class TSV implements LessHarmfulXMLI {
+import { canJSONParse, getObjectVK } from "../utils.ts";
+
+@staticImplements<LessHarmfulXMLIStatic>() export class CSV {
   static readonly file = {
-    extensions: [ ".tsv", ".tab" ],
+    extensions: [ ".csv", ],
     MIME: {
       type: "text",
-      subtype: "tab-separated-values",
+      subtype: "csv"
     }
   };
   
-  static readonly delimeter: string = "\t";
+  static readonly delimeter = ",";
 
   public static stringify(data: Type[]): string {
     const head: Set<Path> = new Set();
@@ -27,10 +27,12 @@ export class TSV implements LessHarmfulXMLI {
     const rows: Map<Path, string>[] = [];
     const rowsStrings: string[] = [];
 
-    for (const i of data) rows.push(loop(i));
+    for (const i of data) rows.push(createRow(i));
 
-    for (const i of head.values()) {
-      headString += i.map(j => j.replaceAll(".", "\0.")).join(".") + this.delimeter;
+    const values = head.values();
+
+    for (const i of values) {
+      headString += i.join(".") + this.delimeter;
 
       for (const j in rows) {
         const toAdd = rows[j].get(i);
@@ -44,32 +46,37 @@ export class TSV implements LessHarmfulXMLI {
 
     return spreadsheet;
 
-    function loop(obj: Type, path: Path = [], dummy = new Map()): Map<Path, string> {
-      for (const key in obj) {
-        const keyPath = calcKey(path.concat(key));
-        const value = obj[key];
+    function createRow(
+      object: Type,
+      path: Path = [],
+      row: Map<Path, string> = new Map()
+    ): Map<Path, string> {
+      const KV = getObjectVK(object);
 
-        if ([key, value].some(s => ("" + s).indexOf("\t") >= 0)) throw new Error("");
+      for (const key in KV) {
+        const keyPath = calculatePath(path.concat("" + key));
+        const value = KV[key];
 
         if (Array.isArray(value)) {
           head.add(keyPath);
-          dummy.set(keyPath, JSON.stringify(value));
-        } else if (typeof value === "object")
-          loop(value as Type, keyPath, dummy);
-        else if (value) {
+          row.set(keyPath, JSON.stringify(value));
+        } else if (typeof value === "object") {
+          createRow(value as Type, keyPath, row);
+        } else if (value) {
           head.add(keyPath);
-          dummy.set(keyPath, "" + value)
+          row.set(keyPath, "" + value);
         }
       }
 
-      return dummy;
+      return row;
     }
 
-    function calcKey(keys: Path): Path {
+    function calculatePath(keys: Path): Path {
       const values = head.values();
+
       for (const i of values)
         if (i.every((val, key) => val === keys[key]))
-          return i
+          return i;
       
       return keys;
     }
@@ -87,7 +94,7 @@ export class TSV implements LessHarmfulXMLI {
 
         if (val) {
           if (prop.includes(".")) {
-            const objs = prop.split(/(?<!\u0000)\./);
+            const objs = prop.split(/(?<!\0)\./);
             const wVal = objs.pop();
 
             let cur = object;
