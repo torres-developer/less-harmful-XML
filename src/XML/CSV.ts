@@ -55,13 +55,15 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
     ): Map<Path, string> {
       const KV = getObjectVK(object);
 
-      for (const key in KV) {
+      for (let key in KV) {
+        if (["\r", "\n", "\"", CSV.delimeter].some(c => key.includes(c)))
+          if (key.includes("\""))
+            key = `"${key.replace(/"/g, "\"\"")}"`;
+          else
+            key = `"${key}"`;
+
         const keyPath = calculatePath(path.concat("" + key));
         const value = KV[key];
-
-        // TODO: Better Error message and perhaps a costum error
-        if ([key, value].some(s => ("" + s).includes(CSV.delimeter)))
-          throw new Error("Tab detected");
 
         // FIXME: Things need to be parsed when parsed. Change message
         if (typeof value == "string" && canJSONParse(value))
