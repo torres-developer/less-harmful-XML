@@ -12,12 +12,12 @@ export function getObjectVK(object: Type): Type {
   const symbols = Object.getOwnPropertySymbols(object);
 
   for (let i = 0; i < symbols.length; i++) {
-    const symbol = symbols[i];
+    const sym = symbols[i];
 
-    const key = Symbol.keyFor(symbol) ??
-      symbol.description ??
-      symbol.toString();
-    if (key) newObject[key] = object[symbol];
+    const key = Symbol.keyFor(sym) ??
+      sym.description ??
+      sym.toString();
+    if (key) newObject[key] = object[sym];
   }
 
   return newObject;

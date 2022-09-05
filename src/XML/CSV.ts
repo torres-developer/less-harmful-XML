@@ -9,7 +9,7 @@ import {
 
 import { canJSONParse, getObjectVK } from "../utils.ts";
 
-@staticImplements<LessHarmfulXMLIStatic>() export class TSV {
+@staticImplements<LessHarmfulXMLIStatic>() export class CSV {
   static readonly file = {
     extensions: [ ".csv" ],
     MIME: {
