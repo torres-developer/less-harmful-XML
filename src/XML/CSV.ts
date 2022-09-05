@@ -9,15 +9,16 @@ import {
 
 import { canJSONParse, getObjectVK } from "../utils.ts";
 
-@staticImplements<LessHarmfulXMLIStatic>() export class CSV {
+@staticImplements<LessHarmfulXMLIStatic>() export class TSV {
   static readonly file = {
-    extensions: [ ".csv", ],
+    extensions: [ ".csv" ],
     MIME: {
       type: "text",
       subtype: "csv"
     }
   };
   
+  static readonly newline = "\r\n";
   static readonly delimeter = ",";
 
   public static stringify(data: Type[]): string {
@@ -32,17 +33,18 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
     const values = head.values();
 
     for (const i of values) {
-      headString += i.join(".") + this.delimeter;
+      headString += i.map(j => j.replace(/\./g, "\0.")).join(".");
+      headString += TSV.delimeter;
 
       for (const j in rows) {
         const toAdd = rows[j].get(i);
         if (!rowsStrings[j]) rowsStrings[j] = "";
-        rowsStrings[j] += (toAdd ?? "") + this.delimeter;
+        rowsStrings[j] += (toAdd ?? "") + TSV.delimeter;
       }
     }
 
     let spreadsheet = headString.slice(0, -1);
-    for (const i of rowsStrings) spreadsheet += "\n" + i.slice(0, -1);
+    for (const i of rowsStrings) spreadsheet += TSV.newline + i.slice(0, -1);
 
     return spreadsheet;
 
@@ -57,12 +59,22 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
         const keyPath = calculatePath(path.concat("" + key));
         const value = KV[key];
 
+        // TODO: Better Error message and perhaps a costum error
+        if ([key, value].some(s => ("" + s).includes(TSV.delimeter)))
+          throw new Error("Tab detected");
+
+        // FIXME: Things need to be parsed when parsed. Change message
+        if (typeof value == "string" && canJSONParse(value))
+          console.warn(`the value "${value} can be parsed into an object and` +
+                       "that makes parsing the the TSV to a JS object not" +
+                       "becoming the same object");
+
         if (Array.isArray(value)) {
           head.add(keyPath);
           row.set(keyPath, JSON.stringify(value));
-        } else if (typeof value === "object") {
+        } else if (typeof value === "object")
           createRow(value as Type, keyPath, row);
-        } else if (value) {
+        else if (value) {
           head.add(keyPath);
           row.set(keyPath, "" + value);
         }
@@ -83,9 +95,10 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
   }
 
   public static parse(notXML: string): Type[] {
-    const [ head, ...body ] = notXML.split("\n").map(i => i.split("\t"));
+    const [ head, ...body ] = notXML.split(TSV.newline)
+      .map(i => i.split(TSV.delimeter));
 
-    const arr: Type[] = [];
+    const array: Type[] = [];
     for (const objectArr of body) {
       const object: Type = {};
 
@@ -95,35 +108,37 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
         if (val) {
           if (prop.includes(".")) {
             const objs = prop.split(/(?<!\0)\./);
-            const wVal = objs.pop();
+            const wVal = objs.pop()?.replace(/\0\./g, ".");
+
+            if (wVal == null) continue;
 
             let cur = object;
             for (let j = 0; j < objs.length; j++) {
-              const key = objs[j]/*.replaceAll("\x00.", ".")*/;
+              const key = objs[j].replace(/\0\./g, ".");
 
               if (!(key in cur)) cur[key] = {};
 
-              cur = cur[key];
+              cur = cur[key] as Type;
             }
 
-            try {
-              cur[wVal.replaceAll("\0.", ".")] = JSON.parse(val);
-            } catch {
-              cur[wVal.replaceAll("\0.", ".")] = val
-            }
-          } else {
-            try {
-              object[prop.replaceAll("\0.", ".")] = JSON.parse(val);
-            } catch {
-              object[prop.replaceAll("\0.", ".")] = val;
-            }
-          }
+            cur[wVal] = calculateValue(val);
+          } else
+            object[prop] = calculateValue(val);
         }
       }
       
-      arr.push(object);
+      array.push(object);
     }
         
-    return arr;
+    return array;
+
+    function calculateValue(value: string): string {
+      try {
+        const parsedValue = JSON.parse(value);
+        return parsedValue;
+      } catch {
+        return value;
+      }
+    }
   }
 }

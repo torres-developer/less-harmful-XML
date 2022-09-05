@@ -1,0 +1,41 @@
+[33mcommit a9b836ed26685c3302716eb5c3d3a1b4fd13870a[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Mon Sep 5 19:47:45 2022 +0100
+
+    full review will start with csv next
+
+[33mcommit 4dc86e61368837fa37d9f51815048be0c68c3dda[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Fri Sep 2 13:24:49 2022 +0100
+
+    better test if are equal objects
+
+[33mcommit 5722cfe57ec4096d1cd755594dbc4d626bc52e67[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Wed Aug 31 11:12:33 2022 +0100
+
+    workaround for static interfaces
+
+[33mcommit d49a6b995aadf644a455c72d7dabb45caa2a317e[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Wed Aug 31 10:12:05 2022 +0100
+
+    separate types
+
+[33mcommit 98d1159e148dfaa3df4ae3246b9172dc2b8db52b[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Wed Aug 31 01:10:35 2022 +0100
+
+    big change
+
+[33mcommit b855b951c81f804ad8df76eec8f0f43871d9a310[m
+Author: torres-developer <110784622+torres-developer@users.noreply.github.com>
+Date:   Wed Aug 31 00:14:48 2022 +0100
+
+    Update README.md
+
+[33mcommit abddba4077ba80af94475a0a79811d2ac0a04c8d[m
+Author: torres-developer <torres.dev@disroot.org>
+Date:   Tue Aug 30 23:56:46 2022 +0100
+
+    init commit
