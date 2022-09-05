@@ -34,17 +34,17 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
 
     for (const i of values) {
       headString += i.map(j => j.replace(/\./g, "\0.")).join(".");
-      headString += TSV.delimeter;
+      headString += CSV.delimeter;
 
       for (const j in rows) {
         const toAdd = rows[j].get(i);
         if (!rowsStrings[j]) rowsStrings[j] = "";
-        rowsStrings[j] += (toAdd ?? "") + TSV.delimeter;
+        rowsStrings[j] += (toAdd ?? "") + CSV.delimeter;
       }
     }
 
     let spreadsheet = headString.slice(0, -1);
-    for (const i of rowsStrings) spreadsheet += TSV.newline + i.slice(0, -1);
+    for (const i of rowsStrings) spreadsheet += CSV.newline + i.slice(0, -1);
 
     return spreadsheet;
 
@@ -60,13 +60,13 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
         const value = KV[key];
 
         // TODO: Better Error message and perhaps a costum error
-        if ([key, value].some(s => ("" + s).includes(TSV.delimeter)))
+        if ([key, value].some(s => ("" + s).includes(CSV.delimeter)))
           throw new Error("Tab detected");
 
         // FIXME: Things need to be parsed when parsed. Change message
         if (typeof value == "string" && canJSONParse(value))
           console.warn(`the value "${value} can be parsed into an object and` +
-                       "that makes parsing the the TSV to a JS object not" +
+                       "that makes parsing the the CSV to a JS object not" +
                        "becoming the same object");
 
         if (Array.isArray(value)) {
@@ -95,8 +95,8 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
   }
 
   public static parse(notXML: string): Type[] {
-    const [ head, ...body ] = notXML.split(TSV.newline)
-      .map(i => i.split(TSV.delimeter));
+    const [ head, ...body ] = notXML.split(CSV.newline)
+      .map(i => i.split(CSV.delimeter));
 
     const array: Type[] = [];
     for (const objectArr of body) {
