@@ -1,6 +1,7 @@
 "use strict";
 
 import { TSV } from "./XML/TSV.ts";
+import { CSV } from "./XML/CSV.ts";
 
 export { TSV } from "./XML/TSV.ts";
 export { CSV } from "./XML/CSV.ts";
@@ -55,9 +56,9 @@ const arr = [
   {name: "Ludwig", age: 54, sex: "M"},
   {name: "Bonnie", age: 6, sex: "M"},
 ]
-console.log(TSV.stringify(arr));
-console.log(TSV.parse(TSV.stringify(arr)));
+console.log(CSV.stringify(arr));
+//console.log(CSV.parse(CSV.stringify(arr)));
 
 import equalObj from "./objectComparison.ts";
 
-console.log( equalObj( TSV.parse(TSV.stringify(arr)), arr) );
+//console.log( equalObj( CSV.parse(CSV.stringify(arr)), arr) );

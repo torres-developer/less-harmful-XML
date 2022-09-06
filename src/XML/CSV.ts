@@ -18,8 +18,8 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
     }
   };
   
-  static readonly newline = "\r\n";
-  static readonly delimeter = ",";
+  static readonly newline = "\x0D\x0A";
+  static readonly delimeter = "\x2C";
 
   public static stringify(data: Type[]): string {
     const head: Set<Path> = new Set();
@@ -56,11 +56,7 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
       const KV = getObjectVK(object);
 
       for (let key in KV) {
-        if (["\r", "\n", "\"", CSV.delimeter].some(c => key.includes(c)))
-          if (key.includes("\""))
-            key = `"${key.replace(/"/g, "\"\"")}"`;
-          else
-            key = `"${key}"`;
+        key = escape(key);
 
         const keyPath = calculatePath(path.concat("" + key));
         const value = KV[key];
@@ -73,16 +69,27 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
 
         if (Array.isArray(value)) {
           head.add(keyPath);
-          row.set(keyPath, JSON.stringify(value));
+          row.set(keyPath, escape(JSON.stringify(value)));
         } else if (typeof value === "object")
           createRow(value as Type, keyPath, row);
         else if (value) {
           head.add(keyPath);
-          row.set(keyPath, "" + value);
+          row.set(keyPath, escape("" + value));
         }
       }
 
       return row;
+
+      function escape(field: string) {
+        if (["\x0D", "\x0A", "\x22", CSV.delimeter].some(c => field.includes(c))) {
+          if (field.includes("\x22"))
+            return `"${field.replace(/\x22/g, "\x22\x22")}"`;
+
+          return `"${field}"`;
+        }
+
+        return field;
+      }
     }
 
     function calculatePath(keys: Path): Path {
@@ -98,7 +105,10 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
 
   public static parse(notXML: string): Type[] {
     const [ head, ...body ] = notXML.split(CSV.newline)
-      .map(i => i.split(CSV.delimeter));
+      .map(i => splitRow(i))
+      .map(i => i.map(j => j.startsWith("\x22")
+        ? j.slice(1, -1).replace(/\x22\x22/g, "\x22")
+        : j));
 
     const array: Type[] = [];
     for (const objectArr of body) {
@@ -133,6 +143,28 @@ import { canJSONParse, getObjectVK } from "../utils.ts";
     }
         
     return array;
+
+    function splitRow(row: string): string[] {
+      const pieces = row.split(CSV.delimeter), correctPieces = [];
+      console.log(pieces);
+
+      let notFinished = false;
+
+      for (const p of pieces) {
+        if (!notFinished)
+          correctPieces.push(p);
+        else
+          correctPieces[correctPieces.length - 1] += CSV.delimeter + p;
+
+
+        if (p.endsWith("\x22") && !p.endsWith("\x22\x22"))
+          notFinished = false;
+        else if (p.startsWith("\x22"))
+          notFinished = true;
+      }
+
+      return correctPieces;
+    }
 
     function calculateValue(value: string): string {
       try {
